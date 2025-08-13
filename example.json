@@ -1,0 +1,7 @@
+{
+  "title": "Mon Quiz Démo",
+  "questions": [
+    { "text": "Quelle est la capitale de la France ?", "answer": "Paris" },
+    { "text": "2 + 2 ?", "answer": "4" }
+  ]
+}
