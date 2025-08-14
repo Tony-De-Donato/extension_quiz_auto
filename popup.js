@@ -1,9 +1,13 @@
 const AI_GOOGLE_API_KEY = "AIzaSyCXxTVZ4KAvhsAtcNOABrKzpjAO5mgGnyA";
-const AI_GOOGLE_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + AI_GOOGLE_API_KEY;
-
+const availableModels = [
+    "gemini-1.5-flash",
+    "gemini-2.0-flash",
+    "gemini-2.5-flash",
+    "gemini-2.5-pro"
+]
 
 document.getElementById('loadOnline').addEventListener('click', () => {
-    
+
     const theme = document.getElementById('quizTheme').value;
     const nbQuestions = document.getElementById('quizNumberOfQuestions').value;
     const nbReponses = document.getElementById('quizNumberOfAnswers').value;
@@ -54,19 +58,33 @@ Ne renvoie rien d'autre que ce JSON.
         }
     };
 
+    tryAllModels(body);
+});
 
-    fetch(AI_GOOGLE_API_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-    })
-        .then(res => {
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            return res.json();
-        })
-        .then(data => {
+async function tryAllModels(body) {
+    let lastError = null;
+
+    for (let i = 0; i < availableModels.length; i++) {
+        const model = availableModels[i];
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${AI_GOOGLE_API_KEY}`;
+
+        console.log(`🔄 Tentative avec le modèle : ${model} (${i + 1}/${availableModels.length})`);
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+
             let quizJson;
             if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
                 const jsonText = data.candidates[0].content.parts[0].text;
@@ -79,10 +97,25 @@ Ne renvoie rien d'autre que ce JSON.
                 throw new Error("Format de réponse inattendu de l'API");
             }
 
+            console.log(`✅ Succès avec le modèle : ${model}`);
             showJsonEditor(quizJson);
-        })
-        .catch(err => alert("Erreur de chargement : " + err));
-});
+            return;
+
+        } catch (error) {
+            lastError = error;
+            console.log(`❌ Échec avec le modèle ${model}: ${error.message}`);
+
+            if (i < availableModels.length - 1) {
+                console.log("🔄 Tentative avec le modèle suivant...");
+                continue;
+            }
+        }
+    }
+
+    console.error("❌ Tous les modèles ont échoué");
+    alert("Service IA inaccessible - Tu peux te plaindre à Dedo mais ça devrait pas changer grand chose.\n\n" +
+        "Erreur : " + lastError.message);
+}
 
 function showJsonEditor(jsonData) {
     const jsonEditor = document.getElementById('jsonEditor');
@@ -127,7 +160,7 @@ function showJsonEditor(jsonData) {
             correctLabel.className = 'correct-label';
             correctLabel.textContent = 'Bonne réponse';
 
-            correctCheckbox.addEventListener('change', function() {
+            correctCheckbox.addEventListener('change', function () {
                 if (this.checked) {
                     const otherCheckboxes = questionsContainer.querySelectorAll(`input[type="checkbox"][data-question-index="${questionIndex}"]`);
                     otherCheckboxes.forEach(cb => {
@@ -135,16 +168,16 @@ function showJsonEditor(jsonData) {
                     });
                 }
             });
-            
+
             answerRow.appendChild(answerInput);
             answerRow.appendChild(correctCheckbox);
             answerRow.appendChild(correctLabel);
             questionDiv.appendChild(answerRow);
         });
-        
+
         questionsContainer.appendChild(questionDiv);
     });
-    
+
     jsonEditor.style.display = 'block';
     window.tempQuizData = jsonData;
 }
@@ -154,8 +187,6 @@ function hideJsonEditor() {
     jsonEditor.style.display = 'none';
     window.tempQuizData = null;
 }
-
-
 
 
 function saveQuizData(jsonData) {
@@ -173,7 +204,7 @@ function clickCommencerButton() {
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
         if (tabs[0]) {
             chrome.scripting.executeScript({
-                target: { tabId: tabs[0].id },
+                target: {tabId: tabs[0].id},
                 func: () => {
                     const commencerButton = document.querySelector('[href="quiz-edit.php"]');
                     if (commencerButton) {
@@ -200,14 +231,12 @@ function clickCommencerButton() {
 }
 
 
-
-
 function downloadJsonFile() {
     try {
         const formData = collectFormData();
         const jsonString = JSON.stringify(formData, null, 2);
 
-        const blob = new Blob([jsonString], { type: 'application/json' });
+        const blob = new Blob([jsonString], {type: 'application/json'});
 
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -222,7 +251,7 @@ function downloadJsonFile() {
         document.body.removeChild(a);
 
         URL.revokeObjectURL(url);
-        
+
     } catch (e) {
         alert("Erreur lors du téléchargement : " + e.message);
     }
@@ -231,12 +260,12 @@ function downloadJsonFile() {
 function collectFormData() {
     const questionsContainer = document.getElementById('questionsContainer');
     const questions = [];
-    
+
     const questionForms = questionsContainer.querySelectorAll('.question-form');
     questionForms.forEach((questionForm, questionIndex) => {
         const questionInput = questionForm.querySelector('.question-input');
         const questionText = questionInput.value.trim();
-        
+
         if (!questionText) {
             throw new Error(`La question ${questionIndex + 1} ne peut pas être vide.`);
         }
@@ -244,7 +273,7 @@ function collectFormData() {
         const answerInputs = questionForm.querySelectorAll('.answer-input');
         const answers = [];
         let correctAnswerIndex = -1;
-        
+
         answerInputs.forEach((answerInput, answerIndex) => {
             const answerText = answerInput.value.trim();
             if (!answerText) {
@@ -257,18 +286,18 @@ function collectFormData() {
                 correctAnswerIndex = answerIndex;
             }
         });
-        
+
         if (correctAnswerIndex === -1) {
             throw new Error(`Vous devez sélectionner une bonne réponse pour la question ${questionIndex + 1}.`);
         }
-        
+
         questions.push({
             question: questionText,
             answers: answers,
             correctAnswerIndex: correctAnswerIndex
         });
     });
-    
+
     return questions;
 }
 
