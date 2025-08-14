@@ -4,13 +4,13 @@
   "version": "1.0",
   "description": "Remplit un quiz depuis un JSON en ligne ou un fichier local",
   "permissions": ["activeTab", "scripting", "storage"],
-  "host_permissions": ["https://ton-site.com/*"],
+  "host_permissions": ["https://generativelanguage.googleapis.com/*", "https://qruiz.net/*"],
   "action": {
     "default_popup": "popup.html"
   },
   "content_scripts": [
     {
-      "matches": ["https://TONSITEQUIZ.com/create*"],
+      "matches": ["https://qruiz.net/quiz-edit.php*"],
       "js": ["content.js"]
     }
   ]

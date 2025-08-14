@@ -1,7 +1,18 @@
-{
-  "title": "Mon Quiz Démo",
-  "questions": [
-    { "text": "Quelle est la capitale de la France ?", "answer": "Paris" },
-    { "text": "2 + 2 ?", "answer": "4" }
-  ]
-}
+[
+  {
+    "question": "Quel est le nom du capitaine de l'équipage du Chapeau de Paille ?",
+    "answers": [
+      "Zoro",
+      "Luffy"
+    ],
+    "correctAnswerIndex": 1
+  },
+  {
+    "question": "Quel est le fruit du démon de Luffy ?",
+    "answers": [
+      "Le fruit du Tremblement",
+      "Le fruit du Gom Gom"
+    ],
+    "correctAnswerIndex": 1
+  }
+]
