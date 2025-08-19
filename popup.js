@@ -203,16 +203,35 @@ function saveQuizData(jsonData) {
 function clickCommencerButton() {
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
         if (tabs[0]) {
+            const currentUrl = tabs[0].url;
+
             chrome.scripting.executeScript({
                 target: {tabId: tabs[0].id},
                 func: () => {
-                    const commencerButton = document.querySelector('[href="quiz-edit.php"]');
-                    if (commencerButton) {
-                        commencerButton.click();
-                        console.log("✅ Clic sur le bouton 'commencer'");
+                    // Look for the "creer" button with data-url attribute
+                    const creerButton = document.querySelector('.creer[data-url]') ||
+                                      document.querySelector('a[data-url*="quiz-edit"]') ||
+                                      document.querySelector('[href*="quiz-edit"]');
+
+                    if (creerButton) {
+                        // Extract the data-url or href attribute
+                        const targetUrl = creerButton.getAttribute('data-url') ||
+                                        creerButton.getAttribute('href');
+
+                        if (targetUrl) {
+                            // Navigate directly to the URL instead of clicking (which opens iframe)
+                            const fullUrl = targetUrl.startsWith('http') ? targetUrl :
+                                          `${window.location.origin}/${targetUrl}`;
+
+                            console.log(`✅ Navigation directe vers: ${fullUrl}`);
+                            window.location.href = fullUrl;
+                        } else {
+                            console.log("❌ URL non trouvée dans data-url ou href");
+                            alert("URL de destination non trouvée");
+                        }
                     } else {
-                        console.log("❌ Bouton 'commencer' non trouvé");
-                        alert("Bouton 'commencer' non trouvé sur cette page");
+                        console.log("❌ Bouton 'creer' non trouvé");
+                        alert("Bouton 'creer' non trouvé sur cette page");
                     }
                 }
             }, () => {

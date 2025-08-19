@@ -4,15 +4,34 @@
   "author": "DE DONATO Tony",
   "version": "1.0",
   "description": "Remplit un quiz depuis une IA ou un fichier local",
-  "permissions": ["activeTab", "scripting", "storage"],
-  "host_permissions": ["https://generativelanguage.googleapis.com/*", "https://qruiz.net/*"],
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*",
+    "https://qruiz.net/*"
+  ],
   "action": {
     "default_popup": "popup.html"
   },
   "content_scripts": [
     {
-      "matches": ["https://qruiz.net/quiz-edit.php*"],
-      "js": ["content.js"]
+      "matches": [
+        "https://qruiz.net/quiz-edit.php*"
+      ],
+      "js": [
+        "content.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://qruiz.net/dashboard-quiz-edit.php*"
+      ],
+      "js": [
+        "content.js"
+      ]
     }
   ]
 }

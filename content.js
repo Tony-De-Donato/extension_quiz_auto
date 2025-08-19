@@ -2,9 +2,13 @@ console.log("🔄 Script de remplissage automatique de quiz lancé");
 
 setTimeout(() => {
     chrome.storage.local.get(["quizData", "currentQuestionIndex"], ({quizData, currentQuestionIndex}) => {
-        if (!quizData) {
+        if (!quizData && !window.location.href.includes("action=finalize")) {
             console.log("❌ Aucune donnée de quiz trouvée dans le storage");
             return;
+        } else if (!quizData && window.location.href.includes("action=finalize")) {
+            console.log("✅ Quiz enregistré avec succès !");
+            console.log("🔄 Redirection vers le tableau de bord");
+            window.location.href = "dashboard.php#quiz";
         }
 
         if (currentQuestionIndex === undefined) {
@@ -18,7 +22,20 @@ setTimeout(() => {
             console.log("Dernière question traitée, aucune action nécessaire");
             chrome.storage.local.clear();
             console.log("✅ Toutes les questions ont été traitées, stockage vidé");
-            alert("Normalement c'est bon, mtn tu peux configurer les ptits details de base hehe");
+
+            if (window.location.href.includes("dashboard-quiz-edit.php")) {
+                if (window.location.href.includes("action=submit")) {
+                    let saveButton = document.querySelector("a[href*=\"action=finalize\"]");
+                    if (saveButton) {
+                        console.log("🔄 Clic sur le bouton 'Enregistrez votre quiz'");
+                        saveButton.click();
+                    } else {
+                        console.log("❌ Bouton 'Enregistrez votre quiz' non trouvé");
+                    }
+                }
+            } else {
+                alert("Normalement c'est bon !!!");
+            }
             return;
         }
 
